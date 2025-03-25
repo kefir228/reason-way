@@ -1,0 +1,16 @@
+{
+    "blocks": [
+        {
+            "width": 90,
+            "height": 150
+        },
+        {
+            "width": 200,
+            "height": 300
+        }
+    ],
+    "container": {
+        "width": 500,
+        "height": 500
+    }
+}
