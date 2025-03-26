@@ -3,10 +3,14 @@ import { Blocks } from "./Blocks";
 
 export const Container = () => {
     const data = DataParse()
-    return(
-        <div>
-            {data.container.width}*{data.container.height}
-            <Blocks/>
+    return (
+        <div className="border"
+            style={{
+                width: `${data.container.width}px`,
+                height: `${data.container.height}px`
+            }}
+        >
+            <Blocks />
         </div>
-    )   
+    )
 }
