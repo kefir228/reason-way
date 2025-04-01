@@ -1,11 +1,13 @@
 import data from '../blocks.json' assert {type: 'json'}
 
-interface Block {
+export interface Block {
     width: number
     height: number
+    x?:number
+    y?:number
 }
 
-interface Container {
+export interface Container {
     width: number
     height: number
 }
