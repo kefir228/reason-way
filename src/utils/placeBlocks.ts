@@ -9,30 +9,51 @@ export const placeBlocks = (blocks: Block[], container: Container): PlacementRes
     const sortedBlocks = [...blocks].sort((a, b) => (b.width * b.height) - (a.width * a.height))
 
     const placedBlocks: Block[] = []
-    let currentX = 0
-    let currentY = 0
-    let maxRowHeight = 0
+    const columnHeights = new Array(container.width).fill(0)
 
     for (let block of sortedBlocks) {
-        if (currentX + block.width > container.width) {
-            currentX = 0
-            currentY += maxRowHeight
-            maxRowHeight = 0
+        let width = block.width
+        let height = block.height
+
+        let bestX = 0
+        let minY = container.height
+
+        for (let x = 0; x <= container.width - width; x++) {
+            const maxColumnHeight = Math.max(...columnHeights.slice(x, x + width))
+            if (maxColumnHeight < minY) {
+                minY = maxColumnHeight
+                bestX = x
+            }
         }
 
-        if (currentY + block.height > container.height) {
-            break
+        const rotatedWidth = block.height
+        const rotatedHeight = block.width
+
+        if (rotatedWidth <= container.width) {
+            for (let x = 0; x <= container.width - rotatedWidth; x++) {
+                const maxColumnHeight = Math.max(...columnHeights.slice(x, x + rotatedWidth))
+                const newY = maxColumnHeight
+                if (newY < minY) {
+                    minY = newY
+                    bestX = x
+                    width = rotatedWidth
+                    height = rotatedHeight
+                }
+            }
         }
 
-        placedBlocks.push({ ...block, x: currentX, y: currentY })
+        placedBlocks.push({ width, height, x: bestX, y: minY })
 
-        currentX += block.width
-        maxRowHeight = Math.max(maxRowHeight, block.height)
+        for (let x = bestX; x < bestX + width; x++){
+            columnHeights[x] = minY + height
+        }
     }
 
     const totalBlockArea = placedBlocks.reduce((sum, b) => sum + (b.width * b.height), 0)
     const totalContainerArea = container.height * container.width
     const fullness = totalBlockArea / totalContainerArea
 
-    return{ placedBlocks, fullness }
+    return { placedBlocks, fullness }
 }
+
+

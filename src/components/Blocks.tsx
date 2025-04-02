@@ -10,16 +10,16 @@ export const Blocks = () => {
     return (
         <div>
             {placedBlocks.map((block, index) => {
-                const bgColor = RandomColor()
+                const bgColor = RandomColor(block.width, block.height)
                 return (
-                    <div className="border flex justify-center items-center"
+                    <div className="border flex justify-center items-center absolute"
                         key={index}
                         style={{
                             width: `${block.width}px`,
                             height: `${block.height}px`,
                             left:`${block.x}px`,
                             top:`${block.y}px`,
-                            backgroundColor: bgColor
+                            backgroundColor: bgColor,
                         }}>
                         {index + 1}
                     </div>
