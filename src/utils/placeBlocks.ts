@@ -1,4 +1,5 @@
 import { Container, Block } from "./dataParse";
+import { fillRemainingGaps } from "./fillRemainingGaps";
 
 export interface PlacementResult {
     placedBlocks: Block[]
@@ -10,6 +11,7 @@ export const placeBlocks = (blocks: Block[], container: Container): PlacementRes
 
     const placedBlocks: Block[] = []
     const columnHeights = new Array(container.width).fill(0)
+    const unplacedBlocks: Block[] = []
 
     for (let block of sortedBlocks) {
         let width = block.width
@@ -42,18 +44,28 @@ export const placeBlocks = (blocks: Block[], container: Container): PlacementRes
             }
         }
 
-        placedBlocks.push({ width, height, x: bestX, y: minY })
+        if (minY + height <= container.height) {
+            placedBlocks.push({ width, height, x: bestX, y: minY })
 
-        for (let x = bestX; x < bestX + width; x++){
-            columnHeights[x] = minY + height
+            for (let x = bestX; x < bestX + width; x++) {
+                columnHeights[x] = minY + height
+            }
+        } else {
+            unplacedBlocks.push(block)
         }
     }
 
-    const totalBlockArea = placedBlocks.reduce((sum, b) => sum + (b.width * b.height), 0)
+    const additionalyPlaced = fillRemainingGaps(unplacedBlocks, placedBlocks, container)
+
+    const totalBlockArea = [...placedBlocks, ...additionalyPlaced].reduce((sum, b) => sum + (b.width * b.height), 0)
     const totalContainerArea = container.height * container.width
     const fullness = totalBlockArea / totalContainerArea
 
-    return { placedBlocks, fullness }
+    return { placedBlocks: [...placedBlocks, ...additionalyPlaced], fullness }
 }
+
+
+
+
 
 
