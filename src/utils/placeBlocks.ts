@@ -1,5 +1,4 @@
 import { Container, Block } from "./dataParse";
-import { fillRemainingGaps } from "./fillRemainingGaps";
 
 export interface PlacementResult {
     placedBlocks: Block[]
@@ -7,62 +6,42 @@ export interface PlacementResult {
 }
 
 export const placeBlocks = (blocks: Block[], container: Container): PlacementResult => {
-    const sortedBlocks = [...blocks].sort((a, b) => (b.width * b.height) - (a.width * a.height))
+    const placedBlocks: Block[] = [];
+    const gridStep = 10;
 
-    const placedBlocks: Block[] = []
-    const columnHeights = new Array(container.width).fill(0)
-    const unplacedBlocks: Block[] = []
+    for (const block of blocks) {
+        const rotations = [
+            { width: block.width, height: block.height },
+            { width: block.height, height: block.width }
+        ];
 
-    for (let block of sortedBlocks) {
-        let width = block.width
-        let height = block.height
+        let placed = false;
 
-        let bestX = 0
-        let minY = container.height
+        for (const { width, height } of rotations) {
+            for (let y = 0; y <= container.height - height; y += gridStep) {
+                for (let x = 0; x <= container.width - width; x += gridStep) {
+                    const overlaps = placedBlocks.some(pb =>
+                        !(x + width <= pb.x! || x >= pb.x! + pb.width || y + height <= pb.y! || y >= pb.y! + pb.height)
+                    );
 
-        for (let x = 0; x <= container.width - width; x++) {
-            const maxColumnHeight = Math.max(...columnHeights.slice(x, x + width))
-            if (maxColumnHeight < minY) {
-                minY = maxColumnHeight
-                bestX = x
-            }
-        }
-
-        const rotatedWidth = block.height
-        const rotatedHeight = block.width
-
-        if (rotatedWidth <= container.width) {
-            for (let x = 0; x <= container.width - rotatedWidth; x++) {
-                const maxColumnHeight = Math.max(...columnHeights.slice(x, x + rotatedWidth))
-                const newY = maxColumnHeight
-                if (newY < minY) {
-                    minY = newY
-                    bestX = x
-                    width = rotatedWidth
-                    height = rotatedHeight
+                    if (!overlaps) {
+                        placedBlocks.push({ width, height, x, y });
+                        placed = true;
+                        break;
+                    }
                 }
+                if (placed) break;
             }
-        }
-
-        if (minY + height <= container.height) {
-            placedBlocks.push({ width, height, x: bestX, y: minY })
-
-            for (let x = bestX; x < bestX + width; x++) {
-                columnHeights[x] = minY + height
-            }
-        } else {
-            unplacedBlocks.push(block)
+            if (placed) break;
         }
     }
 
-    const additionalyPlaced = fillRemainingGaps(unplacedBlocks, placedBlocks, container)
+    const totalBlockArea = placedBlocks.reduce((sum, b) => sum + (b.width * b.height), 0);
+    const totalContainerArea = container.width * container.height;
+    const fullness = totalBlockArea / totalContainerArea;
 
-    const totalBlockArea = [...placedBlocks, ...additionalyPlaced].reduce((sum, b) => sum + (b.width * b.height), 0)
-    const totalContainerArea = container.height * container.width
-    const fullness = totalBlockArea / totalContainerArea
-
-    return { placedBlocks: [...placedBlocks, ...additionalyPlaced], fullness }
-}
+    return { placedBlocks, fullness };
+};
 
 
 
